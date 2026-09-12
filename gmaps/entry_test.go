@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"slices"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
@@ -252,17 +251,24 @@ func Test_EntryFromJSONMergesDuplicateAboutOptions(t *testing.T) {
 	require.Equal(t, []string{"American Express", "Diners Club", "Mastercard", "VISA"}, creditCards.Values)
 }
 
-func Test_EntryCSVIncludesCreditCardsAccepted(t *testing.T) {
+func Test_EntryCSVCustomHeaders(t *testing.T) {
 	entry := gmaps.Entry{
-		CreditCardsAccepted: []string{"American Express", "Mastercard", "VISA"},
+		Title:   "Joe's Cafe",
+		WebSite: "https://joes.com",
+		Emails:  []string{"joe@cafe.com"},
+		Phone:   "+1 555-1234",
+		Link:    "https://maps.google.com/?cid=123",
+		Address: "123 Main St, Jackson, MS",
 	}
 
-	require.Contains(t, entry.CsvHeaders(), "credit_cards_accepted")
+	require.Equal(t, []string{"name", "websites", "emails", "phones", "gmaps link", "complete address"}, entry.CsvHeaders())
 	require.Equal(t, len(entry.CsvHeaders()), len(entry.CsvRow()))
-	require.Equal(t,
-		"American Express, Mastercard, VISA",
-		entry.CsvRow()[slices.Index(entry.CsvHeaders(), "credit_cards_accepted")],
-	)
+	require.Equal(t, "Joe's Cafe", entry.CsvRow()[0])
+	require.Equal(t, "https://joes.com", entry.CsvRow()[1])
+	require.Equal(t, "joe@cafe.com", entry.CsvRow()[2])
+	require.Equal(t, "+1 555-1234", entry.CsvRow()[3])
+	require.Equal(t, "https://maps.google.com/?cid=123", entry.CsvRow()[4])
+	require.Equal(t, "123 Main St, Jackson, MS", entry.CsvRow()[5])
 }
 
 func Test_EntryMarshalEmitsBothLongitudeKeys(t *testing.T) {
