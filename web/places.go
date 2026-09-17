@@ -74,13 +74,15 @@ func parsePlaces(r io.Reader) ([]Place, error) {
 		col[name] = i
 	}
 
-	get := func(row []string, name string) string {
-		idx, ok := col[name]
-		if !ok || idx >= len(row) {
-			return ""
+	get := func(row []string, names ...string) string {
+		for _, name := range names {
+			idx, ok := col[name]
+			if ok && idx < len(row) && row[idx] != "" {
+				return row[idx]
+			}
 		}
 
-		return row[idx]
+		return ""
 	}
 
 	places := []Place{}
@@ -120,14 +122,14 @@ func parsePlaces(r io.Reader) ([]Place, error) {
 		}
 
 		places = append(places, Place{
-			Title:        get(row, "title"),
-			Address:      get(row, "address"),
+			Title:        get(row, "title", "name"),
+			Address:      get(row, "complete_address", "address"),
 			Latitude:     lat,
 			Longitude:    lon,
-			Link:         get(row, "link"),
+			Link:         get(row, "links", "link", "gmaps link"),
 			Category:     get(row, "category"),
-			Phone:        get(row, "phone"),
-			Website:      get(row, "website"),
+			Phone:        get(row, "phones", "phone"),
+			Website:      get(row, "websites", "website"),
 			ReviewRating: rating,
 		})
 	}

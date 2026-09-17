@@ -131,6 +131,7 @@ type Entry struct {
 	UserReviews         []Review     `json:"user_reviews"`
 	UserReviewsExtended []Review     `json:"user_reviews_extended"`
 	Emails              []string     `json:"emails"`
+	SocialLinks         []string     `json:"social_links"`
 }
 
 // entryAlias is used inside Marshal/UnmarshalJSON to avoid infinite recursion
@@ -234,12 +235,14 @@ func (e *Entry) Validate() error {
 
 func (e *Entry) CsvHeaders() []string {
 	return []string{
-		"name",
+		"title",
+		"category",
+		"links",
+		"complete_address",
 		"websites",
-		"emails",
 		"phones",
-		"gmaps link",
-		"complete address",
+		"emails",
+		"social_links",
 	}
 }
 
@@ -251,11 +254,13 @@ func (e *Entry) CsvRow() []string {
 
 	return []string{
 		e.Title,
-		e.WebSite,
-		stringSliceToString(e.Emails),
-		e.Phone,
+		e.Category,
 		e.Link,
 		address,
+		e.WebSite,
+		e.Phone,
+		stringSliceToString(e.Emails),
+		stringSliceToString(e.SocialLinks),
 	}
 }
 

@@ -93,12 +93,55 @@ func (j *EmailExtractJob) Process(ctx context.Context, resp *scrapemate.Response
 	}
 
 	j.Entry.Emails = emails
+	j.Entry.SocialLinks = docSocialLinksExtractor(doc)
 
 	return j.Entry, nil, nil
 }
 
 func (j *EmailExtractJob) ProcessOnFetchError() bool {
 	return true
+}
+
+func docSocialLinksExtractor(doc *goquery.Document) []string {
+	seen := map[string]bool{}
+	var links []string
+
+	socialDomains := []string{
+		"facebook.com",
+		"fb.com",
+		"instagram.com",
+		"twitter.com",
+		"x.com",
+		"linkedin.com",
+		"youtube.com",
+		"tiktok.com",
+		"pinterest.com",
+	}
+
+	doc.Find("a[href]").Each(func(_ int, s *goquery.Selection) {
+		href, exists := s.Attr("href")
+		if !exists {
+			return
+		}
+
+		href = strings.TrimSpace(href)
+		if href == "" || strings.HasPrefix(href, "#") || strings.HasPrefix(href, "javascript:") {
+			return
+		}
+
+		lower := strings.ToLower(href)
+		for _, domain := range socialDomains {
+			if strings.Contains(lower, domain) {
+				if !seen[href] {
+					links = append(links, href)
+					seen[href] = true
+				}
+				break
+			}
+		}
+	})
+
+	return links
 }
 
 func docEmailExtractor(doc *goquery.Document) []string {
